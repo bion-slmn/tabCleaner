@@ -1,11 +1,13 @@
 import { readSettings } from "./settings.js";
-import { discardTab, removeTabFromGroup } from "./utils.js";
+import { discardTab, removeTabFromGroup, closeTab } from "./utils.js";
+import { saveTabActiveTime, loadTabActiveTime } from "./utils.js";
 
 // Global Constants
 let INACTIVITY_TIME;
 let MAX_TABS;
 let INACTIVE_TAB_COLOR;
 let EXTRA_TAB_COLOR;
+let DAYS_TO_CLOSE = 2 * 24 * 60 * 60 * 1000;
 
 // Usage of the imported function
 readSettings()
@@ -26,34 +28,20 @@ readSettings()
     console.error("Failed to load settings:", error);
   });
 
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  console.log(`i have heard changes in setting... ${changes}`);
-  if (namespace === "sync") {
-    if (changes.maxTabs) {
-      MAX_TABS = changes.maxTabs.newValue;
-    }
-    if (changes.inactiveTabColor) {
-      INACTIVE_TAB_COLOR = changes.inactiveTabColor.newValue;
-    }
-    if (changes.extraTabColor) {
-      EXTRA_TAB_COLOR = changes.extraTabColor.newValue;
-    }
-    if (changes.inactivityTime) {
-      INACTIVITY_TIME = changes.inactivityTime.newValue * 60 * 1000;
-    }
-  }
-});
-
 let tabActiveTime = {};
 
-function setCurrentTime() {
+async function setCurrentTime() {
+  tabActiveTime = await loadTabActiveTime(); // Wait for loading active time
+
   const currentTime = Date.now(); // Get the current time in milliseconds
 
   // Query all open tabs
   chrome.tabs.query({}, (tabs) => {
     tabs.forEach((tab) => {
-      // Store the current time for each tab using its ID as the key
-      tabActiveTime[tab.id] = currentTime;
+      // Check if the tab ID exists in the tabActiveTime object
+      if (!(tab.id in tabActiveTime)) {
+        tabActiveTime[tab.id] = currentTime;
+      }
       console.log(
         `Tab ID: ${tab.id}, URL: ${tab.url}, Time Set: ${currentTime}`
       );
@@ -69,7 +57,7 @@ const tabsToUnGroupFromExtraTab = [];
 
 // Function to update the last active time for activated tabs
 function handleTabActivated(activeInfo) {
-  const tabId = activeInfo.tabId;
+  const { tabId } = activeInfo;
   const currentTime = Date.now();
 
   // Get the details of the activated tab
@@ -109,20 +97,14 @@ function handleTabUpdated(tabId, changeInfo) {
 function handleTooManyTabs(tabs) {
   if (tabs.length > MAX_TABS) {
     const currentTime = Date.now();
-    const tabsToMoveInactive = [];
 
-    tabs.forEach((tab) => {
-      console.log(
-        `Tab ID: ${tab.id}, Active: ${tab.active}, Group ID: ${tab.groupId}`
+    const extraTabs = tabs
+      .filter((tab) => !tab.active && tab.groupId === -1)
+      .sort(
+        (a, b) =>
+          (tabActiveTime[b.id] || currentTime) -
+          (tabActiveTime[a.id] || currentTime)
       );
-    });
-
-    const filtered = tabs.filter((tab) => !tab.active && tab.groupId === -1);
-    const extraTabs = filtered.sort(
-      (a, b) =>
-        (tabActiveTime[b.id] || currentTime) -
-        (tabActiveTime[a.id] || currentTime)
-    );
 
     const extraTabsToMove = extraTabs
       .slice(0, tabs.length - MAX_TABS)
@@ -192,6 +174,31 @@ function moveToGroup(tabs, windowId, groupName, color) {
 // Listeners for when a tab is activated or updated
 chrome.tabs.onActivated.addListener(handleTabActivated);
 chrome.tabs.onUpdated.addListener(handleTabUpdated);
+chrome.windows.onRemoved.addListener(() => {
+  console.log(`Deleting a window ...`);
+  saveTabActiveTime(tabActiveTime);
+});
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+  console.log(`Deleting tab ${tabId} ...`);
+  delete tabActiveTime[tabId];
+});
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  console.log(`i have heard changes in setting... ${changes}`);
+  if (namespace === "sync") {
+    if (changes.maxTabs) {
+      MAX_TABS = changes.maxTabs.newValue;
+    }
+    if (changes.inactiveTabColor) {
+      INACTIVE_TAB_COLOR = changes.inactiveTabColor.newValue;
+    }
+    if (changes.extraTabColor) {
+      EXTRA_TAB_COLOR = changes.extraTabColor.newValue;
+    }
+    if (changes.inactivityTime) {
+      INACTIVITY_TIME = changes.inactivityTime.newValue * 60 * 1000;
+    }
+  }
+});
 
 // Check periodically for inactive tabs and move them to the inactive group
 setInterval(() => {
@@ -212,9 +219,12 @@ setInterval(() => {
       if (!tab.active && sleepTime <= INACTIVITY_TIME && tab.groupId === -1) {
         extraTabs.push(tab);
       }
-    });
 
-    console.log(extraTabs.length, 2323232);
+      if (tab.discarded && sleepTime > DAYS_TO_CLOSE) {
+        console.log("Closing tab after 2 hours");
+        closeTab(tab);
+      }
+    });
 
     // Only attempt to move tabs if there are any to move
     if (tabsToGroup.length > 0) {
@@ -238,4 +248,4 @@ setInterval(() => {
       removeTabFromGroup(tabsToUnGroupFromExtraTab);
     }
   });
-}, 20 * 1000); // Check every 30 seconds
+}, 30 * 1000); // Check every 30 seconds
