@@ -89,20 +89,9 @@
     <h2>Settings</h2>
 
     <label for="maxTabs">Max Tabs:</label>
+    <small>Set the maximum number of open tabs allowed before extra tabs are moved to the "Extra Tabs" group. The default limit is 7 tabs.</small>
     <input type="number" id="maxTabs" min="1" max="100">
 
-    <label for="inactiveTabColor">Inactive Tab Color:</label>
-    <select id="inactiveTabColor">
-        <option value="grey">Grey</option>
-        <option value="blue">Blue</option>
-        <option value="red">Red</option>
-        <option value="yellow">Yellow</option>
-        <option value="green">Green</option>
-        <option value="pink">Pink</option>
-        <option value="purple">Purple</option>
-        <option value="cyan">Cyan</option>
-        <option value="orange">Orange</option>
-    </select>
 
     <label for="extraTabColor">Extra Tab Color:</label>
     <select id="extraTabColor">
@@ -118,7 +107,24 @@
     </select>
 
     <label for="inactivityTime">Inactivity Time (minutes):</label>
+    <small>This is the number of minutes before a tab is declared inactive and moved to the inactive tab group. The defualt is 15 minutes</small>
     <input type="number" id="inactivityTime" min="1">
+
+
+    <label for="inactiveTabColor">Inactive Tab group color:</label>
+    <select id="inactiveTabColor">
+        <option value="grey">Grey</option>
+        <option value="blue">Blue</option>
+        <option value="red">Red</option>
+        <option value="yellow">Yellow</option>
+        <option value="green">Green</option>
+        <option value="pink">Pink</option>
+        <option value="purple">Purple</option>
+        <option value="cyan">Cyan</option>
+        <option value="orange">Orange</option>
+    </select>
+
+    
 
     <button id="saveButton">Save Settings</button>
 

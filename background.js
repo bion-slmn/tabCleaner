@@ -238,4 +238,4 @@ setInterval(() => {
       removeTabFromGroup(tabsToUnGroupFromExtraTab);
     }
   });
-}, 30 * 1000); // Check every 30 seconds
+}, 20 * 1000); // Check every 30 seconds
