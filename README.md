@@ -9,6 +9,8 @@
 - **Extra Tabs Group**: When the number of open tabs exceeds the user-defined maximum, the least-used tabs are automatically moved to an "Extra Tabs" group. This ensures that your active tabs remain easy to access, while keeping extra, less-used tabs in a separate group.
 
 - **Tab Reactivation**: If a tab that is placed in the "Inactive Tabs" or "Extra Tabs" group is reactivated (clicked on by the user), it will automatically be removed from its group and restored as an active tab.
+- ![image](https://github.com/user-attachments/assets/f7b34fe6-015c-490e-a5f2-cc6d495edb83)
+
 
 ## How It Works
 
@@ -26,6 +28,9 @@ The extension allows customization of the following settings:
 - **Inactive Tab Color**: Choose a color for the tabs in the "Inactive Tabs" group.
 - **Extra Tab Color**: Choose a color for the tabs in the "Extra Tabs" group.
 - **Inactivity Time**: Define the number of minutes a tab can remain idle before being moved to the "Inactive Tabs" group.
+
+- ![image](https://github.com/user-attachments/assets/a1796672-9728-437d-93d0-0dbdf0109688)
+
 
 ## How to Use
 
