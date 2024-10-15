@@ -57,7 +57,7 @@ const tabsToUnGroupFromExtraTab = [];
 
 // Function to update the last active time for activated tabs
 function handleTabActivated(activeInfo) {
-  const { tabId } = activeInfo;
+  const tabId = activeInfo.tabId;
   const currentTime = Date.now();
 
   // Get the details of the activated tab
@@ -207,6 +207,7 @@ setInterval(() => {
   const extraTabs = [];
 
   chrome.tabs.query({}, (tabs) => {
+    console.log("Checking the tabs ..........");
     tabs.forEach((tab) => {
       const lastActive = tabActiveTime[tab.id] || currentTime;
       const sleepTime = currentTime - lastActive;
@@ -221,8 +222,8 @@ setInterval(() => {
       }
 
       if (tab.discarded && sleepTime > DAYS_TO_CLOSE) {
-        console.log("Closing tab after 2 hours");
-        closeTab(tab);
+        console.log("Closing tab after 2 days.......");
+        closeTab(tab.id);
       }
     });
 
