@@ -98,17 +98,21 @@ function handleTooManyTabs(tabs) {
   if (tabs.length > MAX_TABS) {
     const currentTime = Date.now();
 
+    // Filter inactive and ungrouped tabs, then sort by their last active time
     const extraTabs = tabs
       .filter((tab) => !tab.active && tab.groupId === -1)
-      .sort((a, b) => tabActiveTime[b.id] - tabActiveTime[a.id]);
+      .sort((a, b) => tabActiveTime[a.id] - tabActiveTime[b.id]);
 
+    // Log tab URLs and last active times (converted to seconds) for debugging
+
+    // Determine which tabs to move to the "Extra Tabs" group
     const extraTabsToMove = extraTabs
       .slice(0, tabs.length - MAX_TABS)
       .map((tab) => tab.id);
 
-    // Move the rest of the extra tabs to "Extra Tabs"
+    // Move the extra tabs to the "Extra Tabs" group if necessary
     if (extraTabsToMove.length > 0) {
-      console.log("moving to extra.............");
+      console.log('Moving tabs to "Extra Tabs"...');
       moveToGroup(
         extraTabsToMove,
         tabs[0].windowId,
