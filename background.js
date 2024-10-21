@@ -100,11 +100,7 @@ function handleTooManyTabs(tabs) {
 
     const extraTabs = tabs
       .filter((tab) => !tab.active && tab.groupId === -1)
-      .sort(
-        (a, b) =>
-          (tabActiveTime[b.id] || currentTime) -
-          (tabActiveTime[a.id] || currentTime)
-      );
+      .sort((a, b) => tabActiveTime[b.id] - tabActiveTime[a.id]);
 
     const extraTabsToMove = extraTabs
       .slice(0, tabs.length - MAX_TABS)
